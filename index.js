@@ -130,15 +130,14 @@ const methods = {
 
     withNativeModules: function withNativeModules() {
         return this.withExtension(".node")
-            .add(function ({mode}) {
+            .add(function () {
+                this.node = {
+                    __dirname: false,
+                };
+
                 this.module.rules.push({
                     test: /\.node$/,
                     loader: "native-ext-loader",
-                    options: {
-                        rewritePath: mode === "production"
-                            ? "resources/app.asar/build"
-                            : "build",
-                    },
                 });
             });
     },
