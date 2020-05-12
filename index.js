@@ -2,6 +2,7 @@
 
 const os = require("os");
 
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const LicenseWebpackPlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -140,6 +141,10 @@ const methods = {
                     loader: "native-ext-loader",
                 });
             });
+    },
+
+    withFiles: function withFiles(files) {
+        return this.withPlugin(new CopyWebpackPlugin(files));
     },
 
     to: function to(target, path, outFileName, debugOutFileName) {
