@@ -13,6 +13,8 @@ const platform = os.platform();
 
 function buildConfig(env, argv) {
     var result = {
+        output: {},
+
         resolve: {
             extensions: [
                 `.${platform}.ts`,
@@ -129,6 +131,12 @@ const methods = {
         return this.withPlugin(new HtmlWebPackPlugin({template, filename}));
     },
 
+    withExternals: function withExternals(externals) {
+        return this.add(function() {
+            this.externals = externals;
+        });
+    },
+
     withNativeModules: function withNativeModules() {
         return this.withExtension(".node")
             .add(function () {
@@ -147,15 +155,21 @@ const methods = {
         return this.withPlugin(new CopyWebpackPlugin(files));
     },
 
+    asLibrary: function asLibrary(type, name) {
+        return this.add(function() {
+            this.output.library = name;
+            this.output.libraryTarget = type;
+        });
+    },
+
     to: function to(target, path, outFileName, debugOutFileName) {
         this.add(function ({mode}) {
             this.target = target;
 
-            const filename = !debugOutFileName || mode === "production"
+            this.output.path = path;
+            this.output.filename = !debugOutFileName || mode === "production"
                 ? outFileName
                 : debugOutFileName;
-
-            this.output = {path, filename};
         });
 
         return buildConfig.bind(this);
