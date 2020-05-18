@@ -11,6 +11,8 @@ const TSLintPlugin = require("tslint-webpack-plugin");
 
 const platform = os.platform();
 
+const ProdMode = "production";
+
 function buildConfig(env, argv) {
     var result = {
         output: {},
@@ -112,11 +114,17 @@ const methods = {
         return this.withExtension(".jsx", ".tsx");
     },
 
-    withCss: function withCss() {
-        return this.withPlugin(new MiniCssExtractPlugin({
-                filename: "[name].css",
-                chunkFilename: "[id].css",
-            }))
+    withCss: function withCss(outFileName, debugOutFileName) {
+        return this.add(function ({mode}) {
+                const filename = !debugOutFileName || mode === ProdMode
+                    ? outFileName
+                    : debugOutFileName;
+
+                this.plugins.push(new MiniCssExtractPlugin({
+                    filename,
+                    chunkFilename: "[id].css",
+                }));
+            })
             .withRule({
                 test: /\.sass$/,
                 use: [
@@ -167,7 +175,7 @@ const methods = {
             this.target = target;
 
             this.output.path = path;
-            this.output.filename = !debugOutFileName || mode === "production"
+            this.output.filename = !debugOutFileName || mode === ProdMode
                 ? outFileName
                 : debugOutFileName;
         });
