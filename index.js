@@ -141,7 +141,7 @@ const methods = {
 
     withExternals: function withExternals(externals) {
         return this.add(function() {
-            this.externals = externals;
+            this.externals = Object.assign({}, this.externals, externals);
         });
     },
 
@@ -171,7 +171,7 @@ const methods = {
     },
 
     to: function to(target, path, outFileName, debugOutFileName) {
-        this.add(function ({mode}) {
+        this.directives.unshift(function ({mode}) {
             this.target = target;
 
             this.output.path = path;
