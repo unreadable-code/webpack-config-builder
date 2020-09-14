@@ -77,31 +77,26 @@ function buildConfig(env, argv) {
 }
 
 const methods = {
-    add: function(fn) {
-        this.directives.push(fn);
-        return this;
-    },
-
     withExtension: function withExtensions(...extensions) {
-        return this.add(function () {
+        return extend(this, function () {
             this.resolve.extensions.push(...extensions);
         });
     },
 
     withPlugin: function withPlugin(plugin) {
-        return this.add(function () {
+        return extend(this, function () {
             this.plugins.push(plugin);
         });
     },
 
     withRule: function withRule(rule) {
-        return this.add(function () {
+        return extend(this, function () {
             this.module.rules.push(rule);
         });
     },
 
     withNoParse: function withNoParse(path) {
-        return this.add(function () {
+        return extend(this, function () {
             if (this.module.noParse) {
                 this.module.noParse.push(path);
             } else {
@@ -115,7 +110,7 @@ const methods = {
     },
 
     withCss: function withCss(outFileName, debugOutFileName) {
-        return this.add(function ({mode}) {
+        return extend(this, function ({mode}) {
                 const filename = !debugOutFileName || mode === ProdMode
                     ? outFileName
                     : debugOutFileName;
@@ -140,23 +135,22 @@ const methods = {
     },
 
     withExternals: function withExternals(externals) {
-        return this.add(function() {
+        return extend(this, function() {
             this.externals = Object.assign({}, this.externals, externals);
         });
     },
 
     withNativeModules: function withNativeModules() {
-        return this.withExtension(".node")
-            .add(function () {
-                this.node = {
-                    __dirname: false,
-                };
+        return extend(this.withExtension(".node"), function () {
+            this.node = {
+                __dirname: false,
+            };
 
-                this.module.rules.push({
-                    test: /\.node$/,
-                    loader: "native-ext-loader",
-                });
+            this.module.rules.push({
+                test: /\.node$/,
+                loader: "native-ext-loader",
             });
+        });
     },
 
     withFiles: function withFiles(files) {
@@ -164,7 +158,7 @@ const methods = {
     },
 
     asLibrary: function asLibrary(type, name) {
-        return this.add(function() {
+        return extend(this, function() {
             this.output.library = name;
             this.output.libraryTarget = type;
         });
@@ -180,9 +174,19 @@ const methods = {
                 : debugOutFileName;
         });
 
+        return this;
+    },
+
+    build: function build() {
         return buildConfig.bind(this);
     },
 };
+
+function extend(that, f) {
+    var result = Object.create(methods);
+    result.directives = that.directives.concat(f);
+    return result;
+}
 
 module.exports.from = function from(entrypoint) {
     var result = Object.create(methods);
