@@ -22,8 +22,8 @@
     "license-webpack-plugin": "^2.2.0",
     "mini-css-extract-plugin": "^0.9.0",
     "terser-webpack-plugin": "^2.3.6",
-    "tslint-webpack-plugin": "^2.1.0",
-    "tslint": "^6.1.2",
+    "eslint": "^7.10.0",
+    "eslint-loader": "^4.0.2",
     "webpack": "^4.43.0"
   }
 }

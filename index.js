@@ -7,7 +7,6 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const LicenseWebpackPlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
-const TSLintPlugin = require("tslint-webpack-plugin");
 
 const platform = os.platform();
 
@@ -31,16 +30,12 @@ function buildConfig(env, argv) {
                 {
                     test: /\.(j|t)s(x?)$/,
                     exclude: /node_modules/,
-                    loader: "babel-loader",
+                    loader: ["babel-loader", "eslint-loader"],
                 },
             ],
         },
 
-        plugins: [
-            new TSLintPlugin({
-                files: ["./src/**/*.ts"],
-            }),
-        ],
+        plugins: [],
     };
 
     if (argv.mode === "production") {
