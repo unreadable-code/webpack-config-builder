@@ -17,13 +17,13 @@
   },
   "homepage": "https://github.com/unreadable-code/webpack-config-builder#readme",
   "peerDependencies": {
-    "copy-webpack-plugin": "^5.1.1",
+    "copy-webpack-plugin": "^6.3.1",
     "html-webpack-plugin": "^4.3.0",
     "license-webpack-plugin": "^2.2.0",
     "mini-css-extract-plugin": "^0.9.0",
-    "terser-webpack-plugin": "^2.3.6",
+    "terser-webpack-plugin": "^5.0.3",
     "eslint": "^7.10.0",
     "eslint-loader": "^4.0.2",
-    "webpack": "^4.43.0"
+    "webpack": "^5.4.0"
   }
 }

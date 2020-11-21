@@ -30,7 +30,10 @@ function buildConfig(env, argv) {
                 {
                     test: /\.(j|t)s(x?)$/,
                     exclude: /node_modules/,
-                    loader: ["babel-loader", "eslint-loader"],
+                    use: [
+                        "babel-loader",
+                        "eslint-loader",
+                    ],
                 },
             ],
         },
@@ -42,11 +45,10 @@ function buildConfig(env, argv) {
         result.devtool = undefined;
 
         result.optimization = {
+            minimize: true,
             minimizer: [
                 new TerserJSPlugin({
-                    cache: true,
                     parallel: true,
-                    sourceMap: false,
                     terserOptions: {},
                     exclude: /\.(sa|sc|c)ss$/,
                 }),
@@ -143,7 +145,9 @@ const methods = {
 
             this.module.rules.push({
                 test: /\.node$/,
-                loader: "native-ext-loader",
+                use: [
+                    "native-ext-loader",
+                ],
             });
         });
     },
