@@ -1,9 +1,10 @@
-'use strict';
+"use strict";
 
 const os = require("os");
 
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
 const LicenseWebpackPlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
@@ -28,17 +29,20 @@ function buildConfig(env, argv) {
         module: {
             rules: [
                 {
-                    test: /\.(j|t)s(x?)$/,
+                    test: /\.(j|t)s(x?)$/i,
                     exclude: /node_modules/,
                     use: [
                         "babel-loader",
-                        "eslint-loader",
                     ],
                 },
             ],
         },
 
-        plugins: [],
+        plugins: [
+            new ESLintPlugin({
+              files: "src/**/*.ts",
+            }),
+        ],
     };
 
     if (argv.mode === "production") {
@@ -50,7 +54,7 @@ function buildConfig(env, argv) {
                 new TerserJSPlugin({
                     parallel: true,
                     terserOptions: {},
-                    exclude: /\.(sa|sc|c)ss$/,
+                    exclude: /\.(sa|sc|c)ss$/i,
                 }),
             ],
         };
@@ -92,6 +96,21 @@ const methods = {
         });
     },
 
+    withFont: function withFont(outputPath) {
+        return this.withRule({
+            test: /\.(woff(2)?|ttf|eot|svg)$/i,
+            use: [
+                {
+                    loader: "file-loader",
+                    options: {
+                        name: "[name].[ext]",
+                        outputPath,
+                    }
+                }
+            ],
+        });
+    },
+
     withNoParse: function withNoParse(path) {
         return extend(this, function () {
             if (this.module.noParse) {
@@ -118,7 +137,7 @@ const methods = {
                 }));
             })
             .withRule({
-                test: /\.sass$/,
+                test: /\.sass$/i,
                 use: [
                     MiniCssExtractPlugin.loader,
                     "css-loader",
@@ -144,7 +163,7 @@ const methods = {
             };
 
             this.module.rules.push({
-                test: /\.node$/,
+                test: /\.node$/i,
                 use: [
                     "native-ext-loader",
                 ],
