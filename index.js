@@ -15,7 +15,9 @@ const ProdMode = "production";
 
 function buildConfig(env, argv) {
     var result = {
-        output: {},
+        output: {
+            publicPath: "",
+        },
 
         resolve: {
             extensions: [
