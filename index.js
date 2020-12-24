@@ -13,6 +13,16 @@ const platform = os.platform();
 
 const ProdMode = "production";
 
+function normalizeEntryPointName(entry) {
+    if (entry.startsWith("./"))
+        entry = entry.slice(2);
+
+    if (entry.startsWith("src/"))
+        entry = entry.slice(4);
+
+    return entry.replace(/\//g, "-");
+}
+
 function buildConfig(env, argv) {
     var result = {
         output: {
@@ -70,7 +80,7 @@ function buildConfig(env, argv) {
         result.plugins.push(
             new LicensePlugin({
                 licenseOverrides: result.licenseOverrides,
-                outputFilename: "ATTRIBUTION.json",
+                outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
             }));
 
         delete result.licenseOverrides;
