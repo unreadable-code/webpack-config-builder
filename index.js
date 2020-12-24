@@ -5,7 +5,7 @@ const os = require("os");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
-const LicenseWebpackPlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
+const LicensePlugin = require("webpack-license-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
 
@@ -45,7 +45,13 @@ function buildConfig(env, argv) {
               files: "src/**/*.ts",
             }),
         ],
+
+        licenseOverrides: {},
     };
+
+    this.directives.forEach(function (d) {
+        d.call(result, argv);
+    });
 
     if (argv.mode === "production") {
         result.devtool = undefined;
@@ -62,19 +68,15 @@ function buildConfig(env, argv) {
         };
 
         result.plugins.push(
-            new LicenseWebpackPlugin({
-                perChunkOutput: false,
-                addBanner: false,
-                outputFilename: "ATTRIBUTION.txt",
-                preferredLicenseTypes: ["MIT", "ISC"]
+            new LicensePlugin({
+                licenseOverrides: result.licenseOverrides,
+                outputFilename: "ATTRIBUTION.json",
             }));
+
+        delete result.licenseOverrides;
     } else {
         result.devtool = "source-map";
     }
-
-    this.directives.forEach(function (d) {
-        d.call(result, argv);
-    });
 
     return result;
 }
@@ -175,6 +177,12 @@ const methods = {
 
     withFiles: function withFiles(files) {
         return this.withPlugin(new CopyWebpackPlugin(files));
+    },
+
+    withLicenseHint: function withLicenseHint(pkg, version, license) {
+        return extend(this, function() {
+            this.licenseOverrides[`${pkg}@${version}`] = license;
+        });
     },
 
     asLibrary: function asLibrary(type, name) {
