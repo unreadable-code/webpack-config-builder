@@ -82,11 +82,11 @@ function buildConfig(env, argv) {
                 licenseOverrides: result.licenseOverrides,
                 outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
             }));
-
-        delete result.licenseOverrides;
     } else {
         result.devtool = "source-map";
     }
+
+    delete result.licenseOverrides;
 
     return result;
 }
