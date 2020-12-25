@@ -195,6 +195,17 @@ const methods = {
         });
     },
 
+    withDevServer: function withDevServer(port, allowedHosts) {
+        return extend(this, function() {
+            this.devServer = {
+                contentBase: this.output.path,
+                compress: true,
+                port,
+                allowedHosts,
+            };
+        });
+    },
+
     asLibrary: function asLibrary(type, name) {
         return extend(this, function() {
             this.output.library = name;
