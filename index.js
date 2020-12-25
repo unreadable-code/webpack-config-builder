@@ -1,10 +1,11 @@
-'use strict';
+"use strict";
 
 const os = require("os");
 
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
-const LicenseWebpackPlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
+const ESLintPlugin = require("eslint-webpack-plugin");
+const LicensePlugin = require("webpack-license-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
 
@@ -12,9 +13,21 @@ const platform = os.platform();
 
 const ProdMode = "production";
 
+function normalizeEntryPointName(entry) {
+    if (entry.startsWith("./"))
+        entry = entry.slice(2);
+
+    if (entry.startsWith("src/"))
+        entry = entry.slice(4);
+
+    return entry.replace(/\//g, "-");
+}
+
 function buildConfig(env, argv) {
     var result = {
-        output: {},
+        output: {
+            publicPath: "",
+        },
 
         resolve: {
             extensions: [
@@ -28,18 +41,27 @@ function buildConfig(env, argv) {
         module: {
             rules: [
                 {
-                    test: /\.(j|t)s(x?)$/,
+                    test: /\.(j|t)s(x?)$/i,
                     exclude: /node_modules/,
                     use: [
                         "babel-loader",
-                        "eslint-loader",
                     ],
                 },
             ],
         },
 
-        plugins: [],
+        plugins: [
+            new ESLintPlugin({
+              files: "src/**/*.ts",
+            }),
+        ],
+
+        licenseOverrides: {},
     };
+
+    this.directives.forEach(function (d) {
+        d.call(result, argv);
+    });
 
     if (argv.mode === "production") {
         result.devtool = undefined;
@@ -50,25 +72,21 @@ function buildConfig(env, argv) {
                 new TerserJSPlugin({
                     parallel: true,
                     terserOptions: {},
-                    exclude: /\.(sa|sc|c)ss$/,
+                    exclude: /\.(sa|sc|c)ss$/i,
                 }),
             ],
         };
 
         result.plugins.push(
-            new LicenseWebpackPlugin({
-                perChunkOutput: false,
-                addBanner: false,
-                outputFilename: "ATTRIBUTION.txt",
-                preferredLicenseTypes: ["MIT", "ISC"]
+            new LicensePlugin({
+                licenseOverrides: result.licenseOverrides,
+                outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
             }));
     } else {
         result.devtool = "source-map";
     }
 
-    this.directives.forEach(function (d) {
-        d.call(result, argv);
-    });
+    delete result.licenseOverrides;
 
     return result;
 }
@@ -89,6 +107,21 @@ const methods = {
     withRule: function withRule(rule) {
         return extend(this, function () {
             this.module.rules.push(rule);
+        });
+    },
+
+    withFont: function withFont(outputPath) {
+        return this.withRule({
+            test: /\.(woff(2)?|ttf|eot|svg)$/i,
+            use: [
+                {
+                    loader: "file-loader",
+                    options: {
+                        name: "[name].[ext]",
+                        outputPath,
+                    }
+                }
+            ],
         });
     },
 
@@ -118,7 +151,7 @@ const methods = {
                 }));
             })
             .withRule({
-                test: /\.sass$/,
+                test: /\.sass$/i,
                 use: [
                     MiniCssExtractPlugin.loader,
                     "css-loader",
@@ -144,7 +177,7 @@ const methods = {
             };
 
             this.module.rules.push({
-                test: /\.node$/,
+                test: /\.node$/i,
                 use: [
                     "native-ext-loader",
                 ],
@@ -154,6 +187,12 @@ const methods = {
 
     withFiles: function withFiles(files) {
         return this.withPlugin(new CopyWebpackPlugin(files));
+    },
+
+    withLicenseHint: function withLicenseHint(pkg, version, license) {
+        return extend(this, function() {
+            this.licenseOverrides[`${pkg}@${version}`] = license;
+        });
     },
 
     asLibrary: function asLibrary(type, name) {
