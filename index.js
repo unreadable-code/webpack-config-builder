@@ -237,12 +237,13 @@ function extend(that, f) {
     return result;
 }
 
-module.exports.from = function from(entrypoint) {
+module.exports.from = function from(entrypoint, ...roots) {
     var result = Object.create(methods);
 
     result.directives = [
         function () {
             this.entry = entrypoint;
+            roots && (this.resolve.roots = roots);
         },
     ];
 

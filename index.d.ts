@@ -19,4 +19,4 @@ export interface Builder {
     build(): Configuration;
 }
 
-export function from(path: string): Builder;
+export function from(path: string, ...roots?: string[]): Builder;
