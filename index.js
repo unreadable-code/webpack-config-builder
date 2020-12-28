@@ -151,7 +151,7 @@ const methods = {
                 }));
             })
             .withRule({
-                test: /\.sass$/i,
+                test: /\.(c|sa)ss$/i,
                 use: [
                     MiniCssExtractPlugin.loader,
                     "css-loader",
