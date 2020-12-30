@@ -8,6 +8,7 @@ const ESLintPlugin = require("eslint-webpack-plugin");
 const LicensePlugin = require("webpack-license-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
+const webpack = require("webpack");
 
 const platform = os.platform();
 
@@ -57,6 +58,7 @@ function buildConfig(env, argv) {
         ],
 
         licenseOverrides: {},
+        definitions: {},
     };
 
     this.directives.forEach(function (d) {
@@ -86,7 +88,10 @@ function buildConfig(env, argv) {
         result.devtool = "source-map";
     }
 
+    result.plugins.push(new webpack.DefinePlugin(result.definitions));
+
     delete result.licenseOverrides;
+    delete result.definitions;
 
     return result;
 }
@@ -114,6 +119,12 @@ const methods = {
         return this.withRule({
             test,
             type: "asset/resource",
+        });
+    },
+
+    withDefine: function withDefine(symbol, value, debugValue) {
+        return extend(this, function ({mode}) {
+            this.definitions[symbol] = JSON.stringify(!debugValue || mode === ProdMode ? value : debugValue);
         });
     },
 

@@ -1,6 +1,7 @@
 import type {WebpackPluginInstance, Configuration, RuleSetRule} from "webpack";
 
 export interface Builder {
+    withDefine(symbol: string, value: string, debugValue?: string);
     withExtension(...extensions: string[]): this;
     withPlugin(plugin: WebpackPluginInstance): this;
     withRule(rule: RuleSetRule): this;
