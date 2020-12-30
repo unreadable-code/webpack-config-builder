@@ -110,6 +110,14 @@ const methods = {
         });
     },
 
+    withAssets: function withAssets(test) {
+        return this.withRule({
+            test,
+            type: "asset/resource",
+        });
+    },
+
+    /** @deprecated since version 0.2.0 */
     withFont: function withFont(outputPath) {
         return this.withRule({
             test: /\.(woff(2)?|ttf|eot|svg)$/i,
@@ -186,7 +194,9 @@ const methods = {
     },
 
     withFiles: function withFiles(files) {
-        return this.withPlugin(new CopyWebpackPlugin(files));
+        return this.withPlugin(new CopyWebpackPlugin({
+            patterns: files,
+        }));
     },
 
     withLicenseHint: function withLicenseHint(pkg, version, license) {

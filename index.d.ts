@@ -4,7 +4,9 @@ export interface Builder {
     withExtension(...extensions: string[]): this;
     withPlugin(plugin: WebpackPluginInstance): this;
     withRule(rule: RuleSetRule): this;
+    /** @deprecated since version 0.2.0 */
     withFont(outputPath: string): this;
+    withAssets(test: Regex): this;
     withNoParse(path: Configuration["module"]["noParse"]): this;
     withReact(): this;
     withCss(outName: string, debugOutName?: string): this;
