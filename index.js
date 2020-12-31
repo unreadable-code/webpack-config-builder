@@ -125,7 +125,14 @@ const methods = {
     withAssets: function withAssets(test) {
         return this.withRule({
             test,
-            type: "asset/resource",
+            use: [
+                {
+                    loader: "file-loader",
+                    options: {
+                        name: "[contenthash].[ext]",
+                    },
+                },
+            ],
         });
     },
 
