@@ -79,9 +79,16 @@ function buildConfig(env, argv) {
             ],
         };
 
+        const acceptUnlicensed = {};
+        const licenseOverrides = {};
+        for (const id of Object.keys(result.licenseOverrides))
+            (result.licenseOverrides[id] === "UNLICENSED" ? acceptUnlicensed : licenseOverrides)[id]
+                = result.licenseOverrides[id];
+
         result.plugins.push(
             new LicensePlugin({
-                licenseOverrides: result.licenseOverrides,
+                licenseOverrides,
+                excludedPackageTest: (n, v) => !!acceptUnlicensed[`${n}@${v}`],
                 outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
             }));
     } else {
@@ -138,8 +145,8 @@ const methods = {
                     options: {
                         name: "[name].[ext]",
                         outputPath,
-                    }
-                }
+                    },
+                },
             ],
         });
     },
