@@ -16,6 +16,7 @@ export interface Builder {
     withNativeModules(): this;
     withFiles(options: string | unknown[]): this;
     withLicenseHint(name: string, version: string, license: string): this;
+    withAttributionsPath(path): this;
     withDevServer(port: number, allowedHosts?: string[]): this;
     asLibrary(type: "amd"|"umd"|"commonjs", name: string): this;
     to(target: string, path: string, outFileName: string, debugOutFileName?: string): this;

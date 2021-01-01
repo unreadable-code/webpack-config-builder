@@ -85,11 +85,12 @@ function buildConfig(env, argv) {
             (result.licenseOverrides[id] === "UNLICENSED" ? acceptUnlicensed : licenseOverrides)[id]
                 = result.licenseOverrides[id];
 
+        const attributionsPath = result.attributionsFilePath || `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`;
         result.plugins.push(
             new LicensePlugin({
                 licenseOverrides,
                 excludedPackageTest: (n, v) => !!acceptUnlicensed[`${n}@${v}`],
-                outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
+                outputFilename: attributionsPath,
             }));
     } else {
         result.devtool = "source-map";
@@ -97,6 +98,7 @@ function buildConfig(env, argv) {
 
     result.plugins.push(new webpack.DefinePlugin(result.definitions));
 
+    delete result.attributionsFilePath;
     delete result.licenseOverrides;
     delete result.definitions;
 
@@ -227,6 +229,12 @@ const methods = {
     withLicenseHint: function withLicenseHint(pkg, version, license) {
         return extend(this, function() {
             this.licenseOverrides[`${pkg}@${version}`] = license;
+        });
+    },
+
+    withAttributionsPath: function withAttributionsPath(path) {
+        return extend(this, function() {
+            this.attributionsFilePath = path;
         });
     },
 
