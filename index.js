@@ -8,6 +8,7 @@ const ESLintPlugin = require("eslint-webpack-plugin");
 const LicensePlugin = require("webpack-license-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
+const webpack = require("webpack");
 
 const platform = os.platform();
 
@@ -57,6 +58,7 @@ function buildConfig(env, argv) {
         ],
 
         licenseOverrides: {},
+        definitions: {},
     };
 
     this.directives.forEach(function (d) {
@@ -77,16 +79,28 @@ function buildConfig(env, argv) {
             ],
         };
 
+        const acceptUnlicensed = {};
+        const licenseOverrides = {};
+        for (const id of Object.keys(result.licenseOverrides))
+            (result.licenseOverrides[id] === "UNLICENSED" ? acceptUnlicensed : licenseOverrides)[id]
+                = result.licenseOverrides[id];
+
+        const attributionsPath = result.attributionsFilePath || `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`;
         result.plugins.push(
             new LicensePlugin({
-                licenseOverrides: result.licenseOverrides,
-                outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
+                licenseOverrides,
+                excludedPackageTest: (n, v) => !!acceptUnlicensed[`${n}@${v}`],
+                outputFilename: attributionsPath,
             }));
     } else {
         result.devtool = "source-map";
     }
 
+    result.plugins.push(new webpack.DefinePlugin(result.definitions));
+
+    delete result.attributionsFilePath;
     delete result.licenseOverrides;
+    delete result.definitions;
 
     return result;
 }
@@ -110,6 +124,27 @@ const methods = {
         });
     },
 
+    withAssets: function withAssets(test) {
+        return this.withRule({
+            test,
+            use: [
+                {
+                    loader: "file-loader",
+                    options: {
+                        name: "[contenthash].[ext]",
+                    },
+                },
+            ],
+        });
+    },
+
+    withDefine: function withDefine(symbol, value, debugValue) {
+        return extend(this, function ({mode}) {
+            this.definitions[symbol] = JSON.stringify(!debugValue || mode === ProdMode ? value : debugValue);
+        });
+    },
+
+    /** @deprecated since version 0.2.0 */
     withFont: function withFont(outputPath) {
         return this.withRule({
             test: /\.(woff(2)?|ttf|eot|svg)$/i,
@@ -119,8 +154,8 @@ const methods = {
                     options: {
                         name: "[name].[ext]",
                         outputPath,
-                    }
-                }
+                    },
+                },
             ],
         });
     },
@@ -151,7 +186,7 @@ const methods = {
                 }));
             })
             .withRule({
-                test: /\.sass$/i,
+                test: /\.(c|sa)ss$/i,
                 use: [
                     MiniCssExtractPlugin.loader,
                     "css-loader",
@@ -186,12 +221,31 @@ const methods = {
     },
 
     withFiles: function withFiles(files) {
-        return this.withPlugin(new CopyWebpackPlugin(files));
+        return this.withPlugin(new CopyWebpackPlugin({
+            patterns: files,
+        }));
     },
 
     withLicenseHint: function withLicenseHint(pkg, version, license) {
         return extend(this, function() {
             this.licenseOverrides[`${pkg}@${version}`] = license;
+        });
+    },
+
+    withAttributionsPath: function withAttributionsPath(path) {
+        return extend(this, function() {
+            this.attributionsFilePath = path;
+        });
+    },
+
+    withDevServer: function withDevServer(port, allowedHosts) {
+        return extend(this, function() {
+            this.devServer = {
+                contentBase: this.output.path,
+                compress: true,
+                port,
+                allowedHosts,
+            };
         });
     },
 
@@ -226,12 +280,13 @@ function extend(that, f) {
     return result;
 }
 
-module.exports.from = function from(entrypoint) {
+module.exports.from = function from(entrypoint, ...roots) {
     var result = Object.create(methods);
 
     result.directives = [
         function () {
             this.entry = entrypoint;
+            roots && (this.resolve.roots = roots);
         },
     ];
 
