@@ -18,6 +18,7 @@ export interface Builder {
     withLicenseHint(name: string, version: string, license: string): this;
     withAttributionsPath(path): this;
     withDevServer(port: number, allowedHosts?: string[]): this;
+    withDefine(symbol: string, value: string, debugValue: string): this;
     asLibrary(type: "amd"|"umd"|"commonjs", name: string): this;
     to(target: string, path: string, outFileName: string, debugOutFileName?: string): this;
     build(): Configuration;
