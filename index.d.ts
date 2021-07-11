@@ -7,7 +7,7 @@ export interface Builder {
     withRule(rule: RuleSetRule): this;
     /** @deprecated since version 0.2.0 */
     withFont(outputPath: string): this;
-    withAssets(test: Regex): this;
+    withAssets(test: RegExp): this;
     withNoParse(path: Configuration["module"]["noParse"]): this;
     withReact(): this;
     withCss(outName: string, debugOutName?: string): this;

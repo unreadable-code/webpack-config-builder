@@ -1,6 +1,6 @@
 {
   "name": "webpack-config-builder",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Simplify webpack config generation",
   "main": "index.js",
   "types": "types.d.ts",
