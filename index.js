@@ -201,7 +201,12 @@ const methods = {
 
     withExternals: function withExternals(externals) {
         return extend(this, function() {
-            this.externals = Object.assign({}, this.externals, externals);
+            if (!this.externals)
+                this.externals = externals;
+            else if (Array.isArray(this.externals))
+                this.externals = this.externals.concat(externals);
+            else
+                this.externals = Object.assign({}, this.externals, externals);
         });
     },
 
