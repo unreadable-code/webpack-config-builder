@@ -112,6 +112,8 @@ function buildConfig(env, argv) {
 }
 
 const methods = {
+    directives: Object.freeze([]),
+
     withExtension: function withExtension(...extensions) {
         return extend(this, function () {
             this.resolve.extensions.push(...extensions);
@@ -120,7 +122,7 @@ const methods = {
 
     withPlugin: function withPlugin(type, config, debugConfig) {
         return extend(this, function ({mode}) {
-            const cfg = !debufConfig || mode == ProdMode ? config : debugConfig;
+            const cfg = !debugConfig || mode == ProdMode ? config : debugConfig;
             const plugin = new type(cfg);
             this.plugins.push(plugin);
         });
@@ -257,14 +259,16 @@ const methods = {
         });
     },
 
-    to: function to(target, path, outFileName, debugOutFileName) {
+    compile: function compile(target, entrypoint, outPath, outFileName, debugOutFileName) {
         this.directives.unshift(function ({mode}) {
             this.target = target;
 
-            this.output.path = path;
+            this.output.path = outPath;
             this.output.filename = !debugOutFileName || mode === ProdMode
                 ? outFileName
                 : debugOutFileName;
+
+            this.entry = entrypoint;
         });
 
         return buildConfig.bind(this);
@@ -277,15 +281,6 @@ function extend(that, f) {
     return result;
 }
 
-module.exports.from = function from(entrypoint, ...roots) {
-    var result = Object.create(methods);
-
-    result.directives = [
-        function () {
-            this.entry = entrypoint;
-            roots && (this.resolve.roots = roots);
-        },
-    ];
-
-    return result;
-}
+module.exports.newConfigBuilder = function newConfigBuilder() {
+    return Object.create(methods);
+};

@@ -23,7 +23,13 @@ export interface Builder {
 
     asLibrary(type: "amd"|"umd"|"commonjs", name: string): this;
 
-    to(target: string, path: string, outFileName: string, debugOutFileName?: string): Configuration;
+    compile(
+        target: string,
+        sourcePath: string,
+        outPath: string,
+        outFileName: string,
+        debugOutFileName?: string,
+    ): Configuration;
 }
 
-export function from(path: string, ...roots?: string[]): Builder;
+export function newConfigBuilder(): Builder;
