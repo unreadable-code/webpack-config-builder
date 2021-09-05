@@ -58,7 +58,9 @@ function buildConfig(env, argv) {
         ],
 
         definitions: {},
-        licenseOverrides: {},
+        licenseConfig: {
+            licenseTypeOverrides: {},
+        },
         unacceptableLicenses: new Set(),
     };
 
@@ -80,15 +82,11 @@ function buildConfig(env, argv) {
             ],
         };
 
-        const licenseOverrides = {};
-        for (const id of Object.keys(result.licenseOverrides))
-            licenseOverrides[id] = result.licenseOverrides[id];
-
         const unacceptableLicenses = result.unacceptableLicenses;
 
         const licensePluginConfig = {
-            licenseOverrides,
-            outputFilename: result.attributionsFilePath || `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
+            outputFilename: `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
+            ...result.licenseConfig,
             handleMissingLicenseType: (packageName) => {
                 console.warn(`Package missing license: ${packageName}`);
                 return null;
@@ -106,23 +104,24 @@ function buildConfig(env, argv) {
 
     result.plugins.push(new webpack.DefinePlugin(result.definitions));
 
-    delete result.attributionsFilePath;
     delete result.definitions;
-    delete result.licenseOverrides;
+    delete result.licenseConfig;
     delete result.unacceptableLicenses;
 
     return result;
 }
 
 const methods = {
-    withExtension: function withExtensions(...extensions) {
+    withExtension: function withExtension(...extensions) {
         return extend(this, function () {
             this.resolve.extensions.push(...extensions);
         });
     },
 
-    withPlugin: function withPlugin(plugin) {
-        return extend(this, function () {
+    withPlugin: function withPlugin(type, config, debugConfig) {
+        return extend(this, function ({mode}) {
+            const cfg = !debufConfig || mode == ProdMode ? config : debugConfig;
+            const plugin = new type(cfg);
             this.plugins.push(plugin);
         });
     },
@@ -150,22 +149,6 @@ const methods = {
     withDefine: function withDefine(symbol, value, debugValue) {
         return extend(this, function ({mode}) {
             this.definitions[symbol] = JSON.stringify(!debugValue || mode === ProdMode ? value : debugValue);
-        });
-    },
-
-    /** @deprecated since version 0.2.0 */
-    withFont: function withFont(outputPath) {
-        return this.withRule({
-            test: /\.(woff(2)?|ttf|eot|svg)$/i,
-            use: [
-                {
-                    loader: "file-loader",
-                    options: {
-                        name: "[name].[ext]",
-                        outputPath,
-                    },
-                },
-            ],
         });
     },
 
@@ -205,7 +188,7 @@ const methods = {
     },
 
     withHtml: function withHtml(template, filename) {
-        return this.withPlugin(new HtmlWebPackPlugin({template, filename}));
+        return this.withPlugin(HtmlWebPackPlugin, {template, filename});
     },
 
     withExternals: function withExternals(externals) {
@@ -235,18 +218,16 @@ const methods = {
     },
 
     withFiles: function withFiles(files) {
-        return this.withPlugin(new CopyWebpackPlugin({
-            patterns: files,
-        }));
+        return this.withPlugin(CopyWebpackPlugin, {patterns: files});
     },
 
     withLicenseHint: function withLicenseHint(pkg, version, license) {
         return extend(this, function() {
-            this.licenseOverrides[`${pkg}@${version}`] = license;
+            this.licenseConfig.licenseTypeOverrides[pkg] = license;
         });
     },
 
-    withUnacceptableLicense: function withUnacceptableLicense(...name) {
+    withoutLicense: function withoutLicense(...name) {
         return extend(this, function() {
             name.map(n => this.unacceptableLicenses.add(n));
         });
@@ -254,7 +235,7 @@ const methods = {
 
     withAttributionsPath: function withAttributionsPath(path) {
         return extend(this, function() {
-            this.attributionsFilePath = path;
+            this.licenseConfig.outputFilename = path;
         });
     },
 
@@ -286,10 +267,6 @@ const methods = {
                 : debugOutFileName;
         });
 
-        return this;
-    },
-
-    build: function build() {
         return buildConfig.bind(this);
     },
 };
