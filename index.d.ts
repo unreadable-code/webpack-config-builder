@@ -16,6 +16,7 @@ export interface Builder {
     withNativeModules(): this;
     withFiles(options: string | unknown[]): this;
     withLicenseHint(name: string, version: string, license: string): this;
+    withUnacceptableLicense(...name: string[]): this;
     withAttributionsPath(path): this;
     withDevServer(port: number, allowedHosts?: string[]): this;
     withDefine(symbol: string, value: string, debugValue: string): this;

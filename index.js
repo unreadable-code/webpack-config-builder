@@ -5,7 +5,7 @@ const os = require("os");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
-const LicensePlugin = require("webpack-license-plugin")
+const LicensePlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
 const webpack = require("webpack");
@@ -57,8 +57,9 @@ function buildConfig(env, argv) {
             }),
         ],
 
-        licenseOverrides: {},
         definitions: {},
+        licenseOverrides: {},
+        unacceptableLicenses: new Set(),
     };
 
     this.directives.forEach(function (d) {
@@ -79,19 +80,26 @@ function buildConfig(env, argv) {
             ],
         };
 
-        const acceptUnlicensed = {};
         const licenseOverrides = {};
         for (const id of Object.keys(result.licenseOverrides))
-            (result.licenseOverrides[id] === "UNLICENSED" ? acceptUnlicensed : licenseOverrides)[id]
-                = result.licenseOverrides[id];
+            licenseOverrides[id] = result.licenseOverrides[id];
 
-        const attributionsPath = result.attributionsFilePath || `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`;
-        result.plugins.push(
-            new LicensePlugin({
-                licenseOverrides,
-                excludedPackageTest: (n, v) => !!acceptUnlicensed[`${n}@${v}`],
-                outputFilename: attributionsPath,
-            }));
+        const unacceptableLicenses = result.unacceptableLicenses;
+
+        const licensePluginConfig = {
+            licenseOverrides,
+            outputFilename: result.attributionsFilePath || `ATTRIBUTION.${normalizeEntryPointName(result.entry)}.json`,
+            handleMissingLicenseType: (packageName) => {
+                console.warn(`Package missing license: ${packageName}`);
+                return null;
+            },
+            unacceptableLicenseTest: l => unacceptableLicenses.has(l),
+            handleUnacceptableLicense: (p, l) => {
+                console.error(`Found unacceptable license: ${p}#${l}`);
+            },
+        };
+
+        result.plugins.push(new LicensePlugin(licensePluginConfig));
     } else {
         result.devtool = "source-map";
     }
@@ -99,8 +107,9 @@ function buildConfig(env, argv) {
     result.plugins.push(new webpack.DefinePlugin(result.definitions));
 
     delete result.attributionsFilePath;
-    delete result.licenseOverrides;
     delete result.definitions;
+    delete result.licenseOverrides;
+    delete result.unacceptableLicenses;
 
     return result;
 }
@@ -234,6 +243,12 @@ const methods = {
     withLicenseHint: function withLicenseHint(pkg, version, license) {
         return extend(this, function() {
             this.licenseOverrides[`${pkg}@${version}`] = license;
+        });
+    },
+
+    withUnacceptableLicense: function withUnacceptableLicense(...name) {
+        return extend(this, function() {
+            name.map(n => this.unacceptableLicenses.add(n));
         });
     },
 
