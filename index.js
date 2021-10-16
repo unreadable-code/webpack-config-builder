@@ -244,7 +244,6 @@ const methods = {
     withDevServer: function withDevServer(port, allowedHosts) {
         return extend(this, function() {
             this.devServer = {
-                contentBase: this.output.path,
                 compress: true,
                 port,
                 allowedHosts,
