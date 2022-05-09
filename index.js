@@ -2,11 +2,8 @@
 
 const os = require("os");
 
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const HtmlWebPackPlugin = require("html-webpack-plugin");
 const ESLintPlugin = require("eslint-webpack-plugin");
 const LicensePlugin = require("license-webpack-plugin").LicenseWebpackPlugin;
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserJSPlugin = require("terser-webpack-plugin");
 const webpack = require("webpack");
 
@@ -162,28 +159,40 @@ const methods = {
         return this.withExtension(".jsx", ".tsx");
     },
 
-    withCss: function withCss(outFileName, debugOutFileName) {
-        return extend(this, function ({mode}) {
-                const filename = !debugOutFileName || mode === ProdMode
-                    ? outFileName
-                    : debugOutFileName;
+    withStyles() {
+        return this.withRule({
+            test: /\.(c|sa)ss$/i,
+            use: [
+                "css-loader",
+                "sass-loader",
+            ],
+        });
+    },
 
-                this.plugins.push(new MiniCssExtractPlugin({
-                    filename,
-                    chunkFilename: "[id].css",
-                }));
-            })
-            .withRule({
-                test: /\.(c|sa)ss$/i,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader",
-                    "sass-loader",
-                ],
-            });
+    withCss: function withCss(outFileName, debugOutFileName) {
+        const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+        return extend(this, function ({mode}) {
+            const filename = !debugOutFileName || mode === ProdMode
+                ? outFileName
+                : debugOutFileName;
+
+            this.plugins.push(new MiniCssExtractPlugin({
+                filename,
+                chunkFilename: "[id].css",
+            }));
+        })
+        .withRule({
+            test: /\.(c|sa)ss$/i,
+            use: [
+                MiniCssExtractPlugin.loader,
+                "css-loader",
+                "sass-loader",
+            ],
+        });
     },
 
     withHtml: function withHtml(template, filename) {
+        const HtmlWebPackPlugin = require("html-webpack-plugin");
         return this.withPlugin(HtmlWebPackPlugin, {template, filename});
     },
 
@@ -214,6 +223,7 @@ const methods = {
     },
 
     withFiles: function withFiles(files) {
+        const CopyWebpackPlugin = require("copy-webpack-plugin");
         return this.withPlugin(CopyWebpackPlugin, {patterns: files});
     },
 
