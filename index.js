@@ -255,6 +255,12 @@ const methods = {
         });
     },
 
+    withModulePaths: function withModulePaths(...path) {
+        return extend(this, function() {
+            this.resolve.modules = path;
+        });
+    },
+
     asLibrary: function asLibrary(type, name) {
         return extend(this, function() {
             this.output.library = name;

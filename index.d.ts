@@ -28,6 +28,8 @@ export interface Builder {
 
     withDevServer(port: number, allowedHosts?: string[]): this;
 
+    withModulePaths(...paths: string[]): this;
+
     asLibrary(type: "amd"|"umd"|"commonjs", name: string): this;
 
     compile(
