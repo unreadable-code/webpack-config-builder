@@ -26,7 +26,8 @@ export interface Builder {
     withoutLicense(...name: string[]): this;
     withAttributionsPath(path): this;
 
-    withDevServer(port: number, allowedHosts?: string[]): this;
+    withDevServer(unixDomainSocketPath: string, allowedHosts?: string[]): this;
+    withDevServer(httpPort: number, allowedHosts?: string[]): this;
 
     withModulePaths(...paths: string[]): this;
 

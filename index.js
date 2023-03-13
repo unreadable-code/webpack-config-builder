@@ -245,11 +245,12 @@ const methods = {
         });
     },
 
-    withDevServer: function withDevServer(port, allowedHosts) {
+    withDevServer: function withDevServer(portOrPath, allowedHosts) {
+        const patch = typeof portOrPath === "string" ? {ipc: portOrPath} : {port: portOrPath};
         return extend(this, function() {
             this.devServer = {
+                ...patch,
                 compress: true,
-                port,
                 allowedHosts,
             };
         });
