@@ -8,6 +8,13 @@ export interface Builder {
     withNoParse(path: Configuration["module"]["noParse"]): this;
 
     withCss(outName: string, debugOutName?: string): this;
+
+    /**
+     * Enable CSS to be loaded but does not write them into a sheet file.
+     * Best used with libraries
+     */
+    withStyles(): this;
+
     withHtml(templatePath: string, outName: string): this;
 
     withReact(): this;
@@ -20,6 +27,8 @@ export interface Builder {
     withAttributionsPath(path): this;
 
     withDevServer(port: number, allowedHosts?: string[]): this;
+
+    withModulePaths(...paths: string[]): this;
 
     asLibrary(type: "amd"|"umd"|"commonjs", name: string): this;
 
