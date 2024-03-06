@@ -131,12 +131,16 @@ const methods = {
         });
     },
 
-    withAssets: function withAssets(test) {
-        return this.withRule({
+    withAssets: function withAssets(test, type, loaders) {
+        const config = {
             test,
-            type: "asset/resource",
+            type: type || "asset/resource",
             dependency: { not: ["url"] },
-        });
+        };
+
+        loaders && (config.use = loaders);
+
+        return this.withRule(config);
     },
 
     withDefine: function withDefine(symbol, value, debugValue) {
@@ -245,11 +249,12 @@ const methods = {
         });
     },
 
-    withDevServer: function withDevServer(port, allowedHosts) {
+    withDevServer: function withDevServer(portOrPath, allowedHosts) {
+        const patch = typeof portOrPath === "string" ? {ipc: portOrPath} : {port: portOrPath};
         return extend(this, function() {
             this.devServer = {
+                ...patch,
                 compress: true,
-                port,
                 allowedHosts,
             };
         });
