@@ -1,9 +1,11 @@
-import type {WebpackPluginInstance, Configuration, RuleSetRule} from "webpack";
+import type {WebpackPluginInstance, Configuration, RuleSetRule, LoaderItem} from "webpack";
+
+type AssetType = "asset/resource" | "asset/inline" | "asset/source" | "asset";
 
 export interface Builder {
     withExtension(...extensions: string[]): this;
     withPlugin<C>(type: {new(cfg: C): WebpackPluginInstance}, config: C, debugConfig: C): this;
-    withAssets(test: RegExp): this;
+    withAssets(test: RegExp, type?: AssetType, loaders?: LoaderItem[]): this;
     withDefine(symbol: string, value: string, debugValue?: string): this;
     withNoParse(path: Configuration["module"]["noParse"]): this;
 

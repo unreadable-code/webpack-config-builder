@@ -131,12 +131,16 @@ const methods = {
         });
     },
 
-    withAssets: function withAssets(test) {
-        return this.withRule({
+    withAssets: function withAssets(test, type, loaders) {
+        const config = {
             test,
-            type: "asset/resource",
+            type: type || "asset/resource",
             dependency: { not: ["url"] },
-        });
+        };
+
+        loaders && (config.use = loaders);
+
+        return this.withRule(config);
     },
 
     withDefine: function withDefine(symbol, value, debugValue) {
